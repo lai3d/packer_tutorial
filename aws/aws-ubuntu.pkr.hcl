@@ -7,8 +7,18 @@ packer {
   }
 }
 
+locals {
+  timestamp = regex_replace(timestamp(), "[- TZ:]", "")
+}
+
+variable "ami_prefix" {
+  type    = string
+  default = "learn-packer-linux-aws-redis"
+}
+
 source "amazon-ebs" "ubuntu" {
-  ami_name      = "learn-packer-linux-aws-redis"
+  //   ami_name      = "learn-packer-linux-aws-redis"
+  ami_name      = "${var.ami_prefix}-${local.timestamp}"
   instance_type = "t2.micro"
   region        = "us-west-2"
   source_ami_filter {
@@ -40,5 +50,9 @@ build {
       "sudo apt-get install -y redis-server",
       "echo \"FOO is $FOO\" > example.txt",
     ]
+  }
+
+  provisioner "shell" {
+    inline = ["echo This provisioner runs last"]
   }
 }
