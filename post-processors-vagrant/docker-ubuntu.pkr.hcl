@@ -1,14 +1,10 @@
 packer {
   required_plugins {
     amazon = {
-      version = ">= 0.0.2"
+      version = ">= 0.0.1"
       source  = "github.com/hashicorp/amazon"
     }
   }
-}
-
-locals {
-  timestamp = regex_replace(timestamp(), "[- TZ:]", "")
 }
 
 variable "ami_prefix" {
@@ -16,8 +12,11 @@ variable "ami_prefix" {
   default = "learn-packer-linux-aws-redis"
 }
 
+locals {
+  timestamp = regex_replace(timestamp(), "[- TZ:]", "")
+}
+
 source "amazon-ebs" "ubuntu" {
-  //   ami_name      = "learn-packer-linux-aws-redis"
   ami_name      = "${var.ami_prefix}-${local.timestamp}"
   instance_type = "t2.micro"
   region        = "us-west-2"
@@ -34,7 +33,7 @@ source "amazon-ebs" "ubuntu" {
 }
 
 source "amazon-ebs" "ubuntu-focal" {
-  ami_name      = "${var.ami_prefix}-focal-${local.timestamp}"
+  ami_name      = "${var.ami_prefix}-${local.timestamp}"
   instance_type = "t2.micro"
   region        = "us-west-2"
   source_ami_filter {
@@ -49,9 +48,8 @@ source "amazon-ebs" "ubuntu-focal" {
   ssh_username = "ubuntu"
 }
 
-
 build {
-  name = "learn-packer"
+  name    = "learn-packer"
   sources = [
     "source.amazon-ebs.ubuntu",
     "source.amazon-ebs.ubuntu-focal"
@@ -73,4 +71,7 @@ build {
   provisioner "shell" {
     inline = ["echo This provisioner runs last"]
   }
+
+  post-processor "vagrant" {}
+
 }
